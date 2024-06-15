@@ -11,6 +11,11 @@
 
 void Server::Listen(short (*HandlePost)(json requestJSON),short (*HandleGet)(json requestJSON)){
 
+    // Create a socket
+    // Listen for connections
+    // Thread each connection to HandleRequest
+
+    Server::HandleRequest(0,HandlePost,HandleGet);
 }
 
 short Server::HandleRequest(int clientSocket,short (*HandlePost)(json requestJSON),short (*HandleGet)(json requestJSON)){
@@ -46,8 +51,6 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(json requestJSO
     catch(const std::exception& e){
         std::cerr << e.what() << '\n';
     }
-    
-
     
     switch (GetRequestType(&request))
     {

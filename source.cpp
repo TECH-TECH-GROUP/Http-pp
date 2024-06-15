@@ -4,9 +4,19 @@
 
 // use this file as a mock service
 
-int main(){
+short HandlePost(json requestJSON);
+short HandleGet(json requestJSON);
 
+int main(){
+    Server::Listen(HandlePost,HandleGet);
+    return 0;
+}
+
+short HandlePost(json requestJSON){
     
-    //Server::Listen();
+    return 0;
+}
+
+short HandleGet(json requestJSON){
     return 0;
 }
