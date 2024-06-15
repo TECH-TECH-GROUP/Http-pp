@@ -8,17 +8,52 @@
 #include <thread>
 
 #define BUFFER_SIZE 100000
+#define BACKLOG 1313
+#define PORT 1313
 
-void Server::Listen(short (*HandlePost)(json requestJSON),short (*HandleGet)(json requestJSON)){
 
-    // Create a socket
-    // Listen for connections
-    // Thread each connection to HandleRequest
+void Server::Listen(short (*HandlePost)(json requestJSON,std::string requestRoute),short (*HandleGet)(json requestJSON,std::string requestRoute)){
 
-    Server::HandleRequest(0,HandlePost,HandleGet);
+ // Create the listener
+    int serverSocket = socket(AF_INET,SOCK_STREAM,0);
+    if(serverSocket <0){
+        printf("[+] Server socket failed to initialize...\n");
+        return;
+    }
+
+
+    sockaddr_in serverAddr;
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+    serverAddr.sin_port = htons(PORT); 
+
+    if(bind(serverSocket,(struct sockaddr*)&serverAddr,sizeof(serverAddr))!=0){
+        printf("[+] Failed binding the server socket...\n");
+        return;
+    }
+
+    if(listen(serverSocket,BACKLOG) != 0){
+        printf("[+] Failed listening...\n");
+        return;
+    }
+
+    printf("[-] HTTP++ online [%d]\n",PORT);
+
+    while (true){
+        sockaddr_in connectingAddress;
+        socklen_t clientAddressLen = sizeof(connectingAddress);
+        int clientSocket = accept(serverSocket, (struct sockaddr*)&connectingAddress, &clientAddressLen);
+        if(clientSocket == -1){
+            printf("[+] Accepting client failed...\n");
+        }
+        std::thread t(HandleRequest,clientSocket,HandlePost,HandleGet);
+        t.detach();
+    }
+    
+    return;
 }
 
-short Server::HandleRequest(int clientSocket,short (*HandlePost)(json requestJSON),short (*HandleGet)(json requestJSON)){
+short Server::HandleRequest(int clientSocket,short (*HandlePost)(json requestJSON,std::string requestRoute),short (*HandleGet)(json requestJSON,std::string requestRoute)){
     char* buffer = new char[BUFFER_SIZE];
     std::string request = "";
     while(true){
@@ -55,10 +90,10 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(json requestJSO
     switch (GetRequestType(&request))
     {
     case 0:
-        HandlePost(requestJSON);
+        HandlePost(requestJSON,requestRoute);
         break;
     case 1:
-        HandleGet(requestJSON);
+        HandleGet(requestJSON,requestRoute);
         break;
     
     default:
@@ -68,5 +103,8 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(json requestJSO
 }
 
 
+short Response::RespondJSON(short type,json response){
 
+    return 0;
+}
 
