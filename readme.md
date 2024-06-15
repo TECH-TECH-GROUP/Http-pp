@@ -13,6 +13,10 @@ Http++ is an http server implementation for c++
 
 # Usage
 
+Example can be seen in source.cpp file.
+
+### Explanation
+
 To be written
 
 ## Paradignms
