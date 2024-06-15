@@ -1,15 +1,17 @@
 #include "json.h"
+#include <string>
+
+using nlohmann::json;
 
 namespace Server{
-    void Listen();
-    // Route, Type
-    short HandleRequest();
-
-    // Make it easy to add custom logic (callbacks?)
-    short HandlePost();
-    short HandleGet();
+    void Listen(short (*HandlePost)(json requestJSON),short (*HandleGet)(json requestJSON));
+    // Route, Type, Need to pass 
+    short HandleRequest(int clientSocket,short (*HandlePost)(json requestJSON),short (*HandleGet)(json requestJSON));
 }
 
 namespace Response{
-    short RespondJSON();
+    // Type= 0 ok (200), Type= 1 fail (400), Type= 2 fail(500), Type= 3 custom (custom)
+    short RespondJSON(short type,json response);
+
+    const std::string responseJSON = "";
 }
