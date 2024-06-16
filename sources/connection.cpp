@@ -11,6 +11,8 @@
 #define BACKLOG 1313
 #define PORT 1313
 
+#define USE_CORS true
+
 
 void Server::Listen(short (*HandlePost)(json requestJSON,std::string requestRoute),short (*HandleGet)(json requestJSON,std::string requestRoute)){
 
