@@ -4,9 +4,9 @@
 using nlohmann::json;
 
 namespace Server{
-    void Listen(short (*HandlePost)(json requestJSON,std::string requestRoute),short (*HandleGet)(json requestJSON,std::string requestRoute));
+    void Listen(short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute),short (*HandleGet)(int clientSocket, std::string requestRoute));
     // Route, Type, Need to pass 
-    short HandleRequest(int clientSocket,short (*HandlePost)(json requestJSON,std::string requestRoute),short (*HandleGet)(json requestJSON,std::string requestRoute));
+    short HandleRequest(int clientSocket,short (*HandlePost)(int clientSocket, json requestJSON, std::string requestRoute),short (*HandleGet)(int clientSocket, std::string requestRoute));
 }
 
 namespace Response{
