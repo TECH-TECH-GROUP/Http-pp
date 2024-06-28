@@ -3,7 +3,6 @@
 #include "headers/connection.h"
 
 // use this file as a mock service
-
 short HandlePost(json requestJSON,std::string requestRoute);
 short HandleGet(json requestJSON,std::string requestRoute);
 
@@ -17,7 +16,7 @@ short HandlePost(json requestJSON,std::string requestRoute){
 
     // Send back a response
     json responseJSON = {};
-    Response::RespondJSON(0,responseJSON);
+    Response::RespondJSON(0,0,responseJSON);
 
     return 0;
 }

@@ -10,8 +10,7 @@ namespace Server{
 }
 
 namespace Response{
-    // Type= 0 ok (200), Type= 1 fail (400), Type= 2 fail(500), Type= 3 custom (custom)
-    short RespondJSON(short type,json response);
+    // Type= 0 ok (200), Type= 1 fail (400), Type= 2 fail(500)
+    short RespondJSON(int clientSocket,short type,json response);
 
-    const std::string responseJSON = "";
 }

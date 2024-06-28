@@ -11,6 +11,7 @@
 #define BACKLOG 1313
 #define PORT 1313
 
+#define HTTP_VERSION "1.1"
 #define USE_CORS true
 
 
@@ -105,8 +106,29 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(json requestJSO
 }
 
 
-short Response::RespondJSON(short type,json response){
+short Response::RespondJSON(int clientSocket,short type,json response){
+
+    std::string responseType = "200 OK";
+    switch (type)
+    {
+    case 0:
+        break;
+    case 1:
+        responseType = "400 CLIENT ERROR";
+        break;
+    case 2:
+        responseType = "500 SERVER ERROR";
+        break;
+    default:
+        break;
+    }
+
+    std::string responseDump = "HTTP/"+std::string(HTTP_VERSION)+" "+responseType+"\r\nContent-Length:"+std::to_string(response.dump().size())+"\r\n Content-Type: application/json\r\n"+response.dump()+"\r\n\r\n";
+
+    if(send(clientSocket,responseDump.c_str(),responseDump.size(),0) == -1){
+        printf("[-] Failure sending response\n");
+        return -1;
+    }
 
     return 0;
 }
-
