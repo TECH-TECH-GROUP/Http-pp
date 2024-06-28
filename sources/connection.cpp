@@ -82,12 +82,8 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
 
     std::string requestRoute = GetRequestRoute(&request);
 
-    printf("[+] Request route: %s\n",requestRoute.c_str());
-
+    // Get request type
     short requestType = GetRequestType(&request);
-    // Get request typ
-    
-    
     switch (requestType)
     {
     case 0:{
@@ -133,8 +129,6 @@ short Response::RespondJSON(int clientSocket,short type,json response){
     }
 
     std::string responseDump = "HTTP/"+std::string(HTTP_VERSION)+" "+responseType+(USE_CORS?"\r\nAccess-Control-Allow-Origin: *":"")+"\r\nContent-Length:"+std::to_string(response.dump().size())+"\r\nContent-Type: application/json\r\n\r\n"+response.dump()+"\r\n\r\n";
-
-    printf("PRINT%s\n",responseDump.c_str());
 
     if(send(clientSocket,responseDump.c_str(),responseDump.size(),0) == -1){
         printf("[-] Failure sending response\n");
