@@ -1,0 +1,8 @@
+Add custom input for:
+    Access-Control-Allow-Origin
+    Add Access-Control-Allow-Methods
+    Add Access-Control-Allow-Headers
+
+Custom HTTP versions
+Custom backlog
+Custom port
