@@ -6,3 +6,11 @@ Add custom input for:
 Custom HTTP versions
 Custom backlog
 Custom port
+
+Add any header you want to response
+Header parsing
+
+Recognize OPTION headers
+
+Encryption as an option??
+
