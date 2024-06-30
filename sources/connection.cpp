@@ -9,13 +9,12 @@
 
 #define BUFFER_SIZE 100000
 #define BACKLOG 1313
-#define PORT 1313
 
 #define HTTP_VERSION "1.1"
 #define USE_CORS true
 
 
-void Server::Listen(short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute),short (*HandleGet)(int clientSocket, std::string requestRoute)){
+void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute),short (*HandleGet)(int clientSocket, std::string requestRoute),int backlog){
 
  // Create the listener
     int serverSocket = socket(AF_INET,SOCK_STREAM,0);
@@ -28,7 +27,7 @@ void Server::Listen(short (*HandlePost)(int clientSocket, json requestJSON,std::
     sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(PORT); 
+    serverAddr.sin_port = htons(port); 
 
     if(bind(serverSocket,(struct sockaddr*)&serverAddr,sizeof(serverAddr))!=0){
         printf("[+] Failed binding the server socket...\n");
@@ -40,7 +39,7 @@ void Server::Listen(short (*HandlePost)(int clientSocket, json requestJSON,std::
         return;
     }
 
-    printf("[-] HTTP++ online [%d]\n",PORT);
+    printf("[-] HTTP++ online [%d]\n",port);
 
     while (true){
         sockaddr_in connectingAddress;
