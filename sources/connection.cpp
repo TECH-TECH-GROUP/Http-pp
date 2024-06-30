@@ -8,7 +8,6 @@
 #include <thread>
 
 #define BUFFER_SIZE 100000
-#define BACKLOG 1313
 
 #define HTTP_VERSION "1.1"
 #define USE_CORS true
@@ -34,7 +33,7 @@ void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJ
         return;
     }
 
-    if(listen(serverSocket,BACKLOG) != 0){
+    if(listen(serverSocket,backlog) != 0){
         printf("[+] Failed listening...\n");
         return;
     }
