@@ -106,22 +106,31 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
     return 0;
 }
 
-// Sends a response to the connecting client. (clientSocket-> Which socket to respond to? type-> Type of reponse. response-> JSON response. customResponse->  Response code you want to send.)
-short Response::RespondJSON(int clientSocket,short type,json response,std::string customResponse){
+/* Sends a response to the connecting client. 
+
+clientSocket-> Which socket to respond to?
+type-> Type of reponse. [0=200;1=400;2=500;3=custom]
+response-> JSON response.
+customResponseCode-> Response code & header you want to send. ex[ 404 NOT FOUND ] */
+short Response::RespondJSON(int clientSocket,short type,json response,std::string customResponseCode){
 
     std::string responseType = "200 OK";
     switch (type)
     {
     case 0:
+        response["status"] = 200;
         break;
     case 1:
         responseType = "400 CLIENT ERROR";
+        response["status"] = 400;
         break;
     case 2:
         responseType = "500 SERVER ERROR";
+        response["status"] = 500;
         break;
     case 3:
-        responseType = customResponse;
+        responseType = customResponseCode;
+        response["status"] = customResponseCode.substr(0,FindSubstringLocation(&customResponseCode," ")-1);
         break;
     default:
         break;

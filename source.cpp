@@ -2,7 +2,7 @@
 #include "headers/json.h"
 #include "headers/connection.h"
 
-// use this file as a mock service
+// use this file for testing
 short HandlePost(int clientSocket, json requestJSON,std::string requestRoute,json headers);
 short HandleGet(int clientSocket, std::string requestRoute,json headers);
 
@@ -24,8 +24,7 @@ short HandlePost(int clientSocket, json requestJSON,std::string requestRoute,jso
 short HandleGet(int clientSocket, std::string requestRoute,json headers){
     // This is an example implementation of how you can handle a GET request.
     json responseJSON = {};
-    responseJSON["message"] = "Cokee";
-    Response::RespondJSON(clientSocket,0,responseJSON);
+    Response::RespondJSON(clientSocket,3,responseJSON,"404 NOT FOUND");
 
     return 0;
 }

@@ -3,14 +3,14 @@ Add custom input for:
     Add Access-Control-Allow-Methods
     Add Access-Control-Allow-Headers
 
-Custom HTTP versions
-Custom backlog
-Custom port
+[+] Custom backlog
+[+] Custom port
 
 Add any header you want to response
-[*] Header parsing
+[+] Header parsing
 
-Recognize OPTION headers
 
 Encryption as an option??
-
+Recognize UPGRADE and support HTTPv2
+Recognize OPTION headers
+ 

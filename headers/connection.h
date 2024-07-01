@@ -10,6 +10,6 @@ namespace Server{
 }
 
 namespace Response{
-    short RespondJSON(int clientSocket,short type,json response,std::string customResponse="");
+    short RespondJSON(int clientSocket,short type,json response,std::string customResponseCode="");
 
 }
