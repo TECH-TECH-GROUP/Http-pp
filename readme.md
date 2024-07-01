@@ -6,9 +6,7 @@ Http++ is an http server implementation for c++
 
 - Place the contents of the `headers` directory into your `headers` folder
 - Place the contents of the `sources` directory into your `sources` folder
-
 - Make sure to tweak the connection.cpp as per your needs.
-
 - Compile and that is it.
 
 # Usage

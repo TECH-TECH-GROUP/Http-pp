@@ -8,7 +8,7 @@ Custom backlog
 Custom port
 
 Add any header you want to response
-Header parsing
+[*] Header parsing
 
 Recognize OPTION headers
 

@@ -12,8 +12,8 @@
 #define HTTP_VERSION "1.1"
 #define USE_CORS true
 
-
-void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute),short (*HandleGet)(int clientSocket, std::string requestRoute),int backlog){
+// Creates a TCP HTTP listener. (port-> which port to listen on? HandlePost-> handle post function. HandleGet-> handle get function. backlog-> Amount of queued connections)
+void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute,json headers),short (*HandleGet)(int clientSocket, std::string requestRoute,json headers),int backlog){
 
  // Create the listener
     int serverSocket = socket(AF_INET,SOCK_STREAM,0);
@@ -21,7 +21,6 @@ void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJ
         printf("[+] Server socket failed to initialize...\n");
         return;
     }
-
 
     sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
@@ -54,7 +53,7 @@ void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJ
     return;
 }
 
-short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute),short (*HandleGet)(int clientSocket, std::string requestRoute)){
+short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute,json headers),short (*HandleGet)(int clientSocket, std::string requestRoute,json headers)){
     char* buffer = new char[BUFFER_SIZE];
     std::string request = "";
     while(true){
@@ -69,8 +68,6 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
     std::fill(buffer, buffer + BUFFER_SIZE, 0);
     delete[] buffer;
 
-    printf("%s\n",request.c_str());
-
     if(request.size() == 0){
         printf("[-] Client sent an empty request...\n");
         close(clientSocket);
@@ -79,6 +76,7 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
     // Get if request is post or get ( and add more later )
 
     std::string requestRoute = GetRequestRoute(&request);
+    json headers = GetHeaders(&request);
 
     // Get request type
     short requestType = GetRequestType(&request);
@@ -94,12 +92,12 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
             std::cerr << e.what() << '\n';
         }
 
-        HandlePost(clientSocket, requestJSON,requestRoute);
+        HandlePost(clientSocket, requestJSON,requestRoute,headers);
         break;
     }
         
     case 1:
-        HandleGet(clientSocket, requestRoute);
+        HandleGet(clientSocket, requestRoute,headers);
         break;
     
     default:
@@ -108,8 +106,8 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
     return 0;
 }
 
-
-short Response::RespondJSON(int clientSocket,short type,json response){
+// Sends a response to the connecting client. (clientSocket-> Which socket to respond to? type-> Type of reponse. response-> JSON response. customResponse->  Response code you want to send.)
+short Response::RespondJSON(int clientSocket,short type,json response,std::string customResponse){
 
     std::string responseType = "200 OK";
     switch (type)
@@ -121,6 +119,9 @@ short Response::RespondJSON(int clientSocket,short type,json response){
         break;
     case 2:
         responseType = "500 SERVER ERROR";
+        break;
+    case 3:
+        responseType = customResponse;
         break;
     default:
         break;
