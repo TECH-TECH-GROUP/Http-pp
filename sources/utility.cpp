@@ -33,22 +33,26 @@ int FindSubstringLocation(std::string* str,std::string toFind,int shiftBy){
 }
 
 json GetHeaders(std::string* request){
-    std::string headersString = request->substr(FindSubstringLocation(request,"\r\n"),FindSubstringLocation(request,"\r\n\r\n"));
-    headersString.erase(headersString.size()-2,2);
-
     json headers = {};
+    int start = FindSubstringLocation(request,"\r\n");
+    std::string headersString = request->substr(start,request->find("\r\n\r\n", start) - start);
     std::string line = "";
+
     while (headersString.size()>0){
         if(headersString.find("\r\n"))
             line = headersString.substr(0,FindSubstringLocation(&headersString,"\r\n"));
 
         const std::string key = line.substr(0,FindSubstringLocation(&line,":")-1);
         std::string value = line.substr(FindSubstringLocation(&line,":")+1,FindSubstringLocation(&line,"\r\n"));
-        value = value.erase(value.size()-2,2);
-
+        if(headersString.find("\r\n") != -1)
+            value = value.erase(value.size()-2,2);
         headers[key] = value;
+
+        if(headersString.find("\r\n") == -1)
+            break;
         headersString = headersString.substr(FindSubstringLocation(&headersString,"\r\n"));
     }
+    
     return headers;
     
-}   
+}

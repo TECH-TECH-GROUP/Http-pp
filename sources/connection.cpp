@@ -61,8 +61,6 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
         request+=buffer;
 
         if(request.find("\r\n\r\n")!=std::string::npos) break;
-
-        // Possible issue here? Infinite loop without the \r\n\r\n?
     }
 
     std::fill(buffer, buffer + BUFFER_SIZE, 0);
@@ -84,14 +82,14 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
     {
     case 0:{
         json requestJSON;
+        std::string toParse = request.substr(FindSubstringLocation(&request,"\r\n\r\n"));
 
         try{
-            requestJSON = json::parse(request); 
+            requestJSON = json::parse(toParse); 
         }
         catch(const std::exception& e){
             std::cerr << e.what() << '\n';
         }
-
         HandlePost(clientSocket, requestJSON,requestRoute,headers);
         break;
     }
@@ -111,8 +109,15 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
 clientSocket-> Which socket to respond to?
 type-> Type of reponse. [0=200;1=400;2=500;3=custom]
 response-> JSON response.
+headers-> Custom headers you want to respond with.
 customResponseCode-> Response code & header you want to send. ex[ 404 NOT FOUND ] */
-short Response::RespondJSON(int clientSocket,short type,json response,std::string customResponseCode){
+short Response::RespondJSON(int clientSocket,short type,json response,std::string customResponseCode,json headers){
+
+    std::string headersDump = "";
+    for (auto& el : headers.items()){
+        headersDump += el.key();
+        headersDump += ": " + el.value().get<std::string>() + (std::string)"\r\n";
+    }
 
     std::string responseType = "200 OK";
     switch (type)
@@ -135,8 +140,7 @@ short Response::RespondJSON(int clientSocket,short type,json response,std::strin
     default:
         break;
     }
-
-    std::string responseDump = "HTTP/"+std::string(HTTP_VERSION)+" "+responseType+(USE_CORS?"\r\nAccess-Control-Allow-Origin: *":"")+"\r\nContent-Length:"+std::to_string(response.dump().size())+"\r\nContent-Type: application/json\r\n\r\n"+response.dump()+"\r\n\r\n";
+    std::string responseDump = "HTTP/"+std::string(HTTP_VERSION)+" "+responseType+"\r\n"+headersDump+(USE_CORS?"Access-Control-Allow-Origin: *\r\n":"")+"Content-Length:"+std::to_string(response.dump().size())+"\r\nContent-Type: application/json\r\n\r\n"+response.dump()+"\r\n\r\n";
 
     if(send(clientSocket,responseDump.c_str(),responseDump.size(),0) == -1){
         printf("[-] Failure sending response\n");

@@ -12,19 +12,28 @@ int main(){
 }
 
 short HandlePost(int clientSocket, json requestJSON,std::string requestRoute,json headers){
-    // This is an example implementation of how you can handle a POST request.
-
     // Send back a response
     json responseJSON = {};
-    Response::RespondJSON(0,0,responseJSON);
+    printf("%s\n",headers.dump().c_str());
+    printf("%s\n",requestJSON.dump().c_str());
+
+    json responseHeaders = {};
+    responseHeaders["X-TOKEN"] = "012Sd44ASz%9zzx7713";
+    responseHeaders["Concentrated"] = "true";
+    Response::RespondJSON(clientSocket,0,responseJSON,"",responseHeaders);
 
     return 0;
 }
 
 short HandleGet(int clientSocket, std::string requestRoute,json headers){
     // This is an example implementation of how you can handle a GET request.
+    
     json responseJSON = {};
-    Response::RespondJSON(clientSocket,3,responseJSON,"404 NOT FOUND");
+    json responseHeaders = {};
+    responseHeaders["X-TOKEN"] = "012Sd44ASz%9zzx7713";
+    responseHeaders["Concentrated"] = "true";
+
+    Response::RespondJSON(clientSocket,0,responseJSON,"",responseHeaders);
 
     return 0;
 }
