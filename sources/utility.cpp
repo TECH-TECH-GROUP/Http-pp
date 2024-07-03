@@ -19,10 +19,14 @@ int GetRequestType(std::string* request){
 
     if(requestType == "POST") return 0;
     if(requestType == "GET") return 1;
-    if(requestType == "PUT") return 2;
-    if(requestType == "DEL") return 3;
+    // if(requestType == "PUT") return 2;
+    // if(requestType == "DEL") return 3;
 
     return -1;
+}
+
+std::string GetApiVersionRequest(std::string* requestRoute){
+    return requestRoute->substr(0,FindSubstringLocation(requestRoute,"/")-1);
 }
 
 int FindSubstringLocation(std::string* str,std::string toFind,int shiftBy){
@@ -32,10 +36,11 @@ int FindSubstringLocation(std::string* str,std::string toFind,int shiftBy){
     return foundLoc + toFind.size();
 }
 
+// Extracts headers that have been sent with the request and returns them as a JSON object.
 json GetHeaders(std::string* request){
     json headers = {};
     int start = FindSubstringLocation(request,"\r\n");
-    std::string headersString = request->substr(start,request->find("\r\n\r\n", start) - start);
+    std::string headersString = request->substr(start,FindSubstringLocation(request,"\r\n\r\n",start));
     std::string line = "";
 
     while (headersString.size()>0){

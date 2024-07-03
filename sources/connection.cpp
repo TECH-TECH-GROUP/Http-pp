@@ -10,10 +10,15 @@
 #define BUFFER_SIZE 100000
 
 #define HTTP_VERSION "1.1"
+#define USE_VERSIONING true
 #define USE_CORS true
 
-// Creates a TCP HTTP listener. (port-> which port to listen on? HandlePost-> handle post function. HandleGet-> handle get function. backlog-> Amount of queued connections)
-void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute,json headers),short (*HandleGet)(int clientSocket, std::string requestRoute,json headers),int backlog){
+/*Creates a TCP listener.
+port-> which port to listen on? 
+HandlePost-> handle post function pointer.
+HandleGet-> handle get function pointer.
+backlog-> Amount of queued connections.*/
+void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute,json headers,std::string apiVersion),short (*HandleGet)(int clientSocket, std::string requestRoute,json headers,std::string apiVersion),int backlog){
 
  // Create the listener
     int serverSocket = socket(AF_INET,SOCK_STREAM,0);
@@ -53,7 +58,7 @@ void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJ
     return;
 }
 
-short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute,json headers),short (*HandleGet)(int clientSocket, std::string requestRoute,json headers)){
+short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute,json headers,std::string apiVersion),short (*HandleGet)(int clientSocket, std::string requestRoute,json headers,std::string apiVersion)){
     char* buffer = new char[BUFFER_SIZE];
     std::string request = "";
     while(true){
@@ -74,6 +79,9 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
     // Get if request is post or get ( and add more later )
 
     std::string requestRoute = GetRequestRoute(&request);
+    std::string apiVersion = "";
+    if(USE_VERSIONING)
+        apiVersion = GetApiVersionRequest(&requestRoute);
     json headers = GetHeaders(&request);
 
     // Get request type
@@ -83,19 +91,19 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
     case 0:{
         json requestJSON;
         std::string toParse = request.substr(FindSubstringLocation(&request,"\r\n\r\n"));
-
+        
         try{
             requestJSON = json::parse(toParse); 
         }
         catch(const std::exception& e){
             std::cerr << e.what() << '\n';
         }
-        HandlePost(clientSocket, requestJSON,requestRoute,headers);
+        HandlePost(clientSocket, requestJSON,requestRoute,headers,apiVersion);
         break;
     }
         
     case 1:
-        HandleGet(clientSocket, requestRoute,headers);
+        HandleGet(clientSocket, requestRoute,headers,apiVersion);
         break;
     
     default:

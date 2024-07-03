@@ -3,37 +3,25 @@
 #include "headers/connection.h"
 
 // use this file for testing
-short HandlePost(int clientSocket, json requestJSON,std::string requestRoute,json headers);
-short HandleGet(int clientSocket, std::string requestRoute,json headers);
+short HandlePost(int clientSocket, json requestJSON,std::string requestRoute,json headers,std::string apiVersion);
+short HandleGet(int clientSocket, std::string requestRoute,json headers,std::string apiVersion);
 
 int main(){
     Server::Listen(1313,HandlePost,HandleGet);
     return 0;
 }
 
-short HandlePost(int clientSocket, json requestJSON,std::string requestRoute,json headers){
-    // Send back a response
+short HandlePost(int clientSocket, json requestJSON,std::string requestRoute,json headers,std::string apiVersion){
     json responseJSON = {};
-    printf("%s\n",headers.dump().c_str());
-    printf("%s\n",requestJSON.dump().c_str());
-
-    json responseHeaders = {};
-    responseHeaders["X-TOKEN"] = "012Sd44ASz%9zzx7713";
-    responseHeaders["Concentrated"] = "true";
-    Response::RespondJSON(clientSocket,0,responseJSON,"",responseHeaders);
+    Response::RespondJSON(clientSocket,0,responseJSON);
+    printf("%s\n",apiVersion.c_str());
 
     return 0;
 }
 
-short HandleGet(int clientSocket, std::string requestRoute,json headers){
-    // This is an example implementation of how you can handle a GET request.
-    
+short HandleGet(int clientSocket, std::string requestRoute,json headers,std::string apiVersion){
     json responseJSON = {};
-    json responseHeaders = {};
-    responseHeaders["X-TOKEN"] = "012Sd44ASz%9zzx7713";
-    responseHeaders["Concentrated"] = "true";
-
-    Response::RespondJSON(clientSocket,0,responseJSON,"",responseHeaders);
+    Response::RespondJSON(clientSocket,0,responseJSON);
 
     return 0;
 }
