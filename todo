@@ -6,9 +6,10 @@ Add custom input for:
 [+] Custom backlog
 [+] Custom port
 
-[*]Add any header you want to response
+[+] Add any header you want to response
 [+] Header parsing
 
+[*] Api versioning
 
 Encryption as an option??
 Recognize UPGRADE and support HTTPv2

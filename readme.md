@@ -2,6 +2,14 @@
 
 Http++ is an http(s) server implementation for C++. It can be used to quickly start creating a backend with C++, without the hastle of implementing boilerplate code.
 
+## Features
+
+### Header parsing
+### Body parsing
+### Handles GET and POST natively
+### API Route parsing
+### API Versioning
+
 ## Installation
 
 In order to start using Http++ you will need to do the following:
