@@ -14,7 +14,6 @@ int main(){
 short HandlePost(int clientSocket, json requestJSON,std::string requestRoute,json headers,std::string apiVersion){
     json responseJSON = {};
     Response::RespondJSON(clientSocket,0,responseJSON);
-    printf("%s\n",apiVersion.c_str());
 
     return 0;
 }

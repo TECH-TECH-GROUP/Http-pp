@@ -96,16 +96,30 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
             requestJSON = json::parse(toParse); 
         }
         catch(const std::exception& e){
-            std::cerr << e.what() << '\n';
+            std::cerr<< "Issue with parsing JSON. Issue:\n" << e.what() << '\n';
+            Response::RespondJSON(clientSocket,1);
         }
-        HandlePost(clientSocket, requestJSON,requestRoute,headers,apiVersion);
+        try{
+            HandlePost(clientSocket, requestJSON,requestRoute,headers,apiVersion);
+        }
+        catch(const std::exception& e){
+            std::cerr<< "Issue with handling POST request. Issue:\n" << e.what() << '\n';
+            Response::RespondJSON(clientSocket,2);
+        }
+        
         break;
     }
         
     case 1:
-        HandleGet(clientSocket, requestRoute,headers,apiVersion);
-        break;
+        try{
+            HandleGet(clientSocket, requestRoute,headers,apiVersion);
+        }
+        catch(const std::exception& e){
+            std::cerr<< "Issue with handling GET request. Issue:\n" << e.what() << '\n';
+        }
     
+        break;
+
     default:
         break;
     }
