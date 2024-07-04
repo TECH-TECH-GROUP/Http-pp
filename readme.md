@@ -9,6 +9,7 @@ Http++ is an http(s) server implementation for C++. It can be used to quickly st
 ### Handles GET and POST natively
 ### API Route parsing
 ### API Versioning
+### Error handling
 
 ## Installation
 
