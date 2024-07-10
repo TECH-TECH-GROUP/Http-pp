@@ -18,7 +18,7 @@ port-> which port to listen on?
 HandlePost-> handle post function pointer.
 HandleGet-> handle get function pointer.
 backlog-> Amount of queued connections.*/
-void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute,json headers,std::string apiVersion),short (*HandleGet)(int clientSocket, std::string requestRoute,json headers,std::string apiVersion),int backlog){
+void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute,json headers,std::string apiVersion),short (*HandleGet)(int clientSocket, std::string requestRoute,json query,json headers,std::string apiVersion),int backlog){
 
  // Create the listener
     int serverSocket = socket(AF_INET,SOCK_STREAM,0);
@@ -58,7 +58,7 @@ void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJ
     return;
 }
 
-short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute,json headers,std::string apiVersion),short (*HandleGet)(int clientSocket, std::string requestRoute,json headers,std::string apiVersion)){
+short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute,json headers,std::string apiVersion),short (*HandleGet)(int clientSocket, std::string requestRoute,json query,json headers,std::string apiVersion)){
     char* buffer = new char[BUFFER_SIZE];
     std::string request = "";
     while(true){
@@ -112,7 +112,7 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
         
     case 1:
         try{
-            HandleGet(clientSocket, requestRoute,headers,apiVersion);
+            HandleGet(clientSocket,requestRoute,GetQuery(&requestRoute),headers,apiVersion);
         }
         catch(const std::exception& e){
             std::cerr<< "Issue with handling GET request. Issue:\n" << e.what() << '\n';

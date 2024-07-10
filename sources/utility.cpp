@@ -62,3 +62,25 @@ json GetHeaders(std::string* request){
     return headers;
     
 }
+json GetQuery(std::string *url){
+    int start = FindSubstringLocation(url,"?");
+    std::string queryString = url->substr(start);
+    std::string queryLine = queryString;
+
+    json queries = {};
+
+    while(FindSubstringLocation(&queryString,"=") != -1){
+        if(FindSubstringLocation(&queryString,"&") != -1){
+            int start = FindSubstringLocation(&queryLine,"=");
+            queries[queryLine.substr(0,FindSubstringLocation(&queryLine,"=")-1)] = queryLine.substr(start,FindSubstringLocation(&queryLine,"&")-(start+1));
+            
+            queryString = queryString.substr(FindSubstringLocation(&queryString,"&"));
+            queryLine = queryString.substr(0,FindSubstringLocation(&queryString,"&")-1);
+        }
+        else{
+            queries[queryLine.substr(0,FindSubstringLocation(&queryLine,"=")-1)] = queryLine.substr(FindSubstringLocation(&queryLine,"="));
+            break;
+        }
+    }
+    return queries;
+}

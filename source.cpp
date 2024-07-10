@@ -4,7 +4,7 @@
 
 // use this file for testing
 short HandlePost(int clientSocket, json requestJSON,std::string requestRoute,json headers,std::string apiVersion);
-short HandleGet(int clientSocket, std::string requestRoute,json headers,std::string apiVersion);
+short HandleGet(int clientSocket, std::string requestRoute,json query,json headers,std::string apiVersion);
 
 int main(){
     Server::Listen(1313,HandlePost,HandleGet);
@@ -18,7 +18,7 @@ short HandlePost(int clientSocket, json requestJSON,std::string requestRoute,jso
     return 0;
 }
 
-short HandleGet(int clientSocket, std::string requestRoute,json headers,std::string apiVersion){
+short HandleGet(int clientSocket, std::string requestRoute,json query,json headers,std::string apiVersion){
     json responseJSON = {};
     Response::RespondJSON(clientSocket,0,responseJSON);
 
