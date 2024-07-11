@@ -63,11 +63,13 @@ json GetHeaders(std::string* request){
     
 }
 json GetQuery(std::string *url){
+    json queries = {};
     int start = FindSubstringLocation(url,"?");
+    if(start == -1){
+        return queries;
+    }
     std::string queryString = url->substr(start);
     std::string queryLine = queryString;
-
-    json queries = {};
 
     while(FindSubstringLocation(&queryString,"=") != -1){
         if(FindSubstringLocation(&queryString,"&") != -1){
