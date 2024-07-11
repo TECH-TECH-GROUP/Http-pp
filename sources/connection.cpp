@@ -116,6 +116,7 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
         }
         catch(const std::exception& e){
             std::cerr<< "Issue with handling GET request. Issue:\n" << e.what() << '\n';
+            Response::RespondJSON(clientSocket,2);
         }
     
         break;
