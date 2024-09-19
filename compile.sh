@@ -1,1 +1,1 @@
-g++ source.cpp sources/* -o binary/server.out -std=c++2b
+g++ source.cpp $(find sources -name "*.cpp") -o binary/server.out -std=c++2b -I/opt/homebrew/include -L/opt/homebrew/lib -I./headers -lpqxx

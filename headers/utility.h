@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
-
-#include "../headers/json.h"
+#include <json.h>
 
 using nlohmann::json;
 

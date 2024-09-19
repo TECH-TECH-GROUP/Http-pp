@@ -1,14 +1,13 @@
-#include "../headers/connection.h"
-#include "../headers/utility.h"
-
 #include <sys/socket.h>
+#include <connection.h>
 #include <arpa/inet.h>
+#include <validator.h>
+#include <utility.h>
 #include <unistd.h>
 #include <fstream>
 #include <thread>
 
 #define BUFFER_SIZE 100000
-
 #define HTTP_VERSION "1.1"
 #define USE_VERSIONING true
 #define USE_CORS true
@@ -18,12 +17,12 @@ port-> which port to listen on?
 HandlePost-> handle post function pointer.
 HandleGet-> handle get function pointer.
 backlog-> Amount of queued connections.*/
-void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute,json headers,std::string apiVersion),short (*HandleGet)(int clientSocket, std::string requestRoute,json query,json headers,std::string apiVersion),int backlog){
+void Server::Listen(int port,short (*HandlePost)(int clientSocket, json request,std::string requestRoute,json headers,std::string apiVersion,pqxx::connection* dbConn),short (*HandleGet)(int clientSocket, std::string requestRoute,json query,json headers,std::string apiVersion,pqxx::connection* dbConn),int backlog){
 
  // Create the listener
     int serverSocket = socket(AF_INET,SOCK_STREAM,0);
     if(serverSocket <0){
-        printf("[+] Server socket failed to initialize...\n");
+        printf("[!] Server socket failed to initialize...\n");
         return;
     }
 
@@ -33,32 +32,46 @@ void Server::Listen(int port,short (*HandlePost)(int clientSocket, json requestJ
     serverAddr.sin_port = htons(port); 
 
     if(bind(serverSocket,(struct sockaddr*)&serverAddr,sizeof(serverAddr))!=0){
-        printf("[+] Failed binding the server socket...\n");
+        printf("\033[31m[!] Failed binding the server socket...\033[0m\n");
         return;
     }
 
     if(listen(serverSocket,backlog) != 0){
-        printf("[+] Failed listening...\n");
+        printf("[!] Failed listening...\n");
         return;
     }
 
-    printf("[-] HTTP++ online [%d]\n",port);
+    /*
+        Create a connection to the database and prepare statements
+    */
+   
+    // Database connection
+    pqxx::connection* dbConn = Database::ConnectToDatabase();
+    if(dbConn == nullptr){
+        return;
+    }
+    if(Database::PrepareStatements(dbConn)!=0){
+        printf("[E] Error preparing statements, exiting...\n");
+        return;
+    }
+
+    printf("\033[32m[OK] HTTP++ online [%d]\033[0m\n",port);
 
     while (true){
         sockaddr_in connectingAddress;
         socklen_t clientAddressLen = sizeof(connectingAddress);
         int clientSocket = accept(serverSocket, (struct sockaddr*)&connectingAddress, &clientAddressLen);
         if(clientSocket == -1){
-            printf("[+] Accepting client failed...\n");
+            printf("[!] Accepting client failed...\n");
         }
-        std::thread t(HandleRequest,clientSocket,HandlePost,HandleGet);
+        std::thread t(HandleRequest,clientSocket,HandlePost,HandleGet,dbConn);
         t.detach();
     }
     
     return;
 }
 
-short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocket, json requestJSON,std::string requestRoute,json headers,std::string apiVersion),short (*HandleGet)(int clientSocket, std::string requestRoute,json query,json headers,std::string apiVersion)){
+short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocket, json request,std::string requestRoute,json headers,std::string apiVersion,pqxx::connection* dbConn),short (*HandleGet)(int clientSocket, std::string requestRoute,json query,json headers,std::string apiVersion,pqxx::connection* dbConn),pqxx::connection* dbConn){
     char* buffer = new char[BUFFER_SIZE];
     std::string request = "";
     while(true){
@@ -76,18 +89,30 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
         close(clientSocket);
         return -1;
     }
-    // Get if request is post or get ( and add more later )
+
+    json headers = GetHeaders(&request);
+
+    // Before doing anything else, check if the API key is valid...
+    // if(!headers.contains("Auth")){
+    //     json res;
+    //     res["reason"] = "No API key header supplied. (`Auth` header is required)";
+    //     return Response::RespondJSON(clientSocket,1,res);
+    // }
+
+    // if(Validator::ValidateAPIKey(headers["Auth"])!=0){
+    //     json res;
+    //     res["reason"] = "Validation failed. (Your API key is not valid)";
+    //     return Response::RespondJSON(clientSocket,3,res,"401 INVALID API KEY");
+    // }
 
     std::string requestRoute = GetRequestRoute(&request);
     std::string apiVersion = "";
     if(USE_VERSIONING)
         apiVersion = GetApiVersionRequest(&requestRoute);
-    json headers = GetHeaders(&request);
 
     // Get request type
     short requestType = GetRequestType(&request);
-    switch (requestType)
-    {
+    switch (requestType){
     case 0:{
         json requestJSON;
         std::string toParse = request.substr(FindSubstringLocation(&request,"\r\n\r\n"));
@@ -100,40 +125,40 @@ short Server::HandleRequest(int clientSocket,short (*HandlePost)(int clientSocke
             Response::RespondJSON(clientSocket,1);
         }
         try{
-            HandlePost(clientSocket, requestJSON,requestRoute,headers,apiVersion);
+            HandlePost(clientSocket, requestJSON, requestRoute, headers, apiVersion,dbConn);
         }
         catch(const std::exception& e){
             std::cerr<< "Issue with handling POST request. Issue:\n" << e.what() << '\n';
-            Response::RespondJSON(clientSocket,2);
+            return Response::RespondJSON(clientSocket,2);
         }
-        
         break;
     }
         
-    case 1:
+    case 1:{
         try{
-            HandleGet(clientSocket,requestRoute,GetQuery(&requestRoute),headers,apiVersion);
+            HandleGet(clientSocket, requestRoute, GetQuery(&requestRoute), headers, apiVersion,dbConn);
         }
         catch(const std::exception& e){
             std::cerr<< "Issue with handling GET request. Issue:\n" << e.what() << '\n';
-            Response::RespondJSON(clientSocket,2);
+            return Response::RespondJSON(clientSocket,2);
         }
-    
         break;
-
+    }
     default:
         break;
     }
+    close(clientSocket);
     return 0;
 }
 
-/* Sends a response to the connecting client. 
+/* 
+### Sends a response to the connecting client. 
 
-clientSocket-> Which socket to respond to?
-type-> Type of reponse. [0=200;1=400;2=500;3=custom]
-response-> JSON response.
-headers-> Custom headers you want to respond with.
-customResponseCode-> Response code & header you want to send. ex[ 404 NOT FOUND ] */
+`clientSocket` Which socket to respond to?
+`type` Type of reponse. [0=200;1=400;2=500;3=custom]
+`response` JSON response.
+`headers` Custom headers you want to respond with.
+`customResponseCode` Response code & header you want to send. ex: `404 NOT FOUND` */
 short Response::RespondJSON(int clientSocket,short type,json response,std::string customResponseCode,json headers){
 
     std::string headersDump = "";
@@ -147,6 +172,7 @@ short Response::RespondJSON(int clientSocket,short type,json response,std::strin
     {
     case 0:
         response["status"] = 200;
+        response["message"] = "Action completed successfully.";
         break;
     case 1:
         responseType = "400 CLIENT ERROR";
@@ -169,6 +195,8 @@ short Response::RespondJSON(int clientSocket,short type,json response,std::strin
         printf("[-] Failure sending response\n");
         return -1;
     }
+
+    close(clientSocket);
 
     return 0;
 }
