@@ -12,4 +12,5 @@ namespace Server{
 
 namespace Response{
     short RespondJSON(int clientSocket,short type,json response = json::parse("{}"),std::string customResponseCode="",json headers = json::parse("{}"));
+    short HandleOptionsRequest(int clientSocket);
 }
